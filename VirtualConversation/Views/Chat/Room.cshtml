@@ -1,0 +1,66 @@
+﻿@model int
+
+@{
+    var roomIn = VirtualConversation.Controllers.ChatController.Rooms.GetValueOrDefault(Model);
+}
+
+<h1>@roomIn</h1>
+
+<div class="row">
+    <div class="col-12">
+        <input type="text" placeholder="usuario" id="user" />
+        <input type="text" placeholder="message" id="message" />
+        <button class="btn btn-outline-primary" id="btnSend">Send</button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-6">
+        <div id="messages"></div>
+    </div>
+    <div class="col-6">
+        <div id="notification"></div>
+    </div>
+</div>
+
+
+@section Scripts{
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
+    <script>
+        var connection = new signalR.HubConnectionBuilder().withUrl("/Chat").build();
+
+        connection.start().then(() => {
+            connection.invoke("AddToGroup", "@Model")
+        }).catch((e) => console.error(e));
+
+        document.getElementById("btnSend").addEventListener("click", (event) => {
+            let room = "@Model";
+            let user = document.getElementById("user").value;
+            let message = document.getElementById("message").value;
+
+            connection.invoke("SendMessage", room, user, message)
+                .catch((err) => console.error(err.toString()));
+            document.getElementById("message").value = "";
+            document.getElementById("message").focus();
+
+            event.preventDefault();
+        })
+
+        let date = (new Date()).getDate() + '/' + ((new Date()).getMonth() + 1) + '/' + (new Date()).getFullYear();
+        let hour = (new Date()).getHours() + ':' + (new Date()).getMinutes() + ':' + (new Date()).getSeconds();
+        let today = date + ' - ' + hour;
+            
+
+        connection.on("MessageReceived", (user, message) => {
+            var message = "<div><b>" + user + " (" + today + "):</b> " + message + "</div>";
+            document.getElementById("messages").innerHTML = message + document.getElementById("messages").innerHTML;
+        })
+
+        connection.on("ShowWho", (message) => {
+            var message = "<div><b>" + "(" + today + "):</b> " + message + "</div>";
+            document.getElementById("notification").innerHTML = message + document.getElementById("notification").innerHTML;
+        })
+
+
+    </script>
+}

@@ -1,0 +1,18 @@
+﻿@{
+    var rooms = VirtualConversation.Controllers.ChatController.Rooms;
+}
+<div class="row">
+    <div class="col-md-8 offset-2">
+        <h2>Sala de chat</h2>
+        <ul class="list-group">
+            @foreach (var room in rooms)
+            {
+                <li class="list-group-item">
+                    <a href="~/Chat/Room?idRoom=@room.Key">
+                        @room.Value
+                    </a>
+                </li>
+            }
+        </ul>
+    </div>
+</div>
